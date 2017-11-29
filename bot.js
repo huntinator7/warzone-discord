@@ -26,7 +26,7 @@ function getGameData(gameID, cb) {
 const GAME_ID = 14501144
 
 var oldGameData
-var timeSinceNotify = moment().add(1, 'days').calendar()
+var timeSinceNotify = moment("20211111", YYYYMMDD)
 var dataString = `Email=${config.warzone.email}&APIToken=${config.warzone.token}`
 
 var client = new Discord.Client()
