@@ -47,9 +47,6 @@ client.on('message', msg => {
 
 function dealWithGameData() {
     getGameData(GAME_ID, function (err, data) {
-        console.log(timeSinceNotify)
-        console.log(moment())
-        console.log(timeSinceNotify - moment())
         if (err) return err
         if (!oldGameData) {
             oldGameData = data
@@ -59,7 +56,7 @@ function dealWithGameData() {
                 client.channels.get(config.discord.channel).send(`<@&384814450047189005> Turn ${data.numberOfTurns} has finished!`)
                 timeSinceNotify = moment()
             }
-            if (timeSinceNotify - moment() > 1000*43200) {
+            if (moment() - timeSinceNotify > 1000*43200) {
                 timeSinceNotify = moment()
                 data.players.forEach(function (element, index) {
                     if (element.hasCommittedOrders != 'True') {
