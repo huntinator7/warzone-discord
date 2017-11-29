@@ -47,6 +47,7 @@ client.on('message', msg => {
 
 function dealWithGameData() {
     getGameData(GAME_ID, function (err, data) {
+        console.log(timeSinceNotify - moment())
         if (err) return err
         if (!oldGameData) {
             oldGameData = data
