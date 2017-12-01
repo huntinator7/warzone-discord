@@ -122,7 +122,5 @@ function restart() {
         clearInterval(element)
     })
     intervals.length = 0
-    start(test, 0)
+    start(start, 0)
 }
-
-start(test, 0)
