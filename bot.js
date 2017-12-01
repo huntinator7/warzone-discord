@@ -60,7 +60,7 @@ client.on('message', msg => {
                     oldGameData.push(data)
                     gameIds.push(newGame)
                     notified.push(false)
-                    timeSinceNotify.push(moment - 1000 * 3600 * 8)
+                    timeSinceNotify.push(moment() - 1000 * 3600 * 8)
                     restart()
                 }
             })
@@ -99,7 +99,8 @@ function dealWithGameData(i) {
                 }
             })
             if (numLeft.length == 1 && notified[i] == false) {
-                client.channels.get(config.discord.channel).send(`${config.warzoneToDiscord[element.name]} is the only remaining player`)
+                client.channels.get(config.discord.channel).send(`${config.warzoneToDiscord[numLeft[0]]} is the only remaining player`)
+                console.log(`${config.warzoneToDiscord[numLeft[0]]} is the only remaining player`)
                 notified[i] = true
             }
             oldGameData[i] = data
