@@ -24,11 +24,11 @@ function getGameData(gameID, cb) {
 }
 
 var gameIds = []
-
 var oldGameData = []
 var intervals = []
-var notified = [false]
-var timeSinceNotify = [moment() - 1000 * 43200]
+var notified = []
+var timeSinceNotify = []
+
 const API_DELAY = 45000
 var dataString = `Email=${config.warzone.email}&APIToken=${config.warzone.token}`
 
@@ -59,6 +59,8 @@ client.on('message', msg => {
                     client.channels.get(config.discord.channel).send(`Added game "${data.name}"`)
                     oldGameData.push(data)
                     gameIds.push(newGame)
+                    notified.push(false)
+                    timeSinceNotify.push(moment - 1000 * 3600 * 8)
                     restart()
                 }
             })
@@ -75,12 +77,12 @@ function dealWithGameData(i) {
             if (data.numberOfTurns != oldGameData[i].numberOfTurns) {
                 console.log('New turn')
                 client.channels.get(config.discord.channel).send(`<@&384814450047189005> Turn ${data.numberOfTurns} has finished!`)
-                timeSinceNotify = moment()
-                notified = false
+                timeSinceNotify[i] = moment()
+                notified[i] = false
             }
-            if (moment() - timeSinceNotify > 1000 * 3600 * 8) {
-                timeSinceNotify = moment()
-                data.players.forEach(function (element, index) {
+            if (moment() - timeSinceNotify[i] > 1000 * 3600 * 8) {
+                timeSinceNotify[i] = moment()
+                data.players.forEach(function (element) {
                     if (element.hasCommittedOrders != 'True') {
                         console.log(`${element.name} being notified`)
                         var discName = config.warzoneToDiscord[element.name]
@@ -91,14 +93,14 @@ function dealWithGameData(i) {
             var numLeft = [];
             data.players.forEach(function (element, index) {
                 if (element.hasCommittedOrders == 'False') numLeft.push(element.name)
-                if (element.hasCommittedOrders == 'True' && oldGameData.players[index].hasCommittedOrders != 'True' && element.isAI == 'False') {
+                if (element.hasCommittedOrders == 'True' && oldGameData[i].players[index].hasCommittedOrders != 'True' && element.isAI == 'False') {
                     console.log(`${element.name} has taken their turn in ${data.name}`)
                     client.channels.get(config.discord.channel).send(`${element.name} has taken their turn in ${data.name}`)
                 }
             })
-            if (numLeft.length == 1 && notified == false) {
+            if (numLeft.length == 1 && notified[i] == false) {
                 client.channels.get(config.discord.channel).send(`${config.warzoneToDiscord[element.name]} is the only remaining player`)
-                notified = true
+                notified[i] = true
             }
             oldGameData[i] = data
         }
