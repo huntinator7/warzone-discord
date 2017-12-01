@@ -23,10 +23,13 @@ function getGameData(gameID, cb) {
     request(options, callback)
 }
 
-const GAME_ID = 14501144
+var gameIds = []
 
-var oldGameData
-var timeSinceNotify = moment() - 1000*43200
+var oldGameData = []
+var intervals = []
+var notified = [false]
+var timeSinceNotify = [moment() - 1000 * 43200]
+const API_DELAY = 45000
 var dataString = `Email=${config.warzone.email}&APIToken=${config.warzone.token}`
 
 var client = new Discord.Client()
@@ -34,47 +37,90 @@ client.login(config.discord.key)
 
 client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}`)
-    getGameData(GAME_ID, function (err, data) {
-        oldGameData = data
+    gameIds.forEach(function (gameId, i) {
+        getGameData(gameId, function (err, data) {
+            oldGameData[i] = data
+        })
     })
 })
 
 client.on('message', msg => {
     if (msg.channel.id == config.discord.channel && !(msg.author.bot)) {
         console.log(msg.content)
+        if (msg.content.substr(0, 8) == '!addgame') {
+            var newGame = parseInt(msg.content.substr(8))
+            console.log(newGame)
+            getGameData(newGame, function (err, data) {
+                console.log(err)
+                console.log(data)
+                if (err || "error" in data) {
+                    client.channels.get(config.discord.channel).send(`Invalid game number: ${newGame}`)
+                } else {
+                    client.channels.get(config.discord.channel).send(`Added game "${data.name}"`)
+                    oldGameData.push(data)
+                    gameIds.push(newGame)
+                    restart()
+                }
+            })
+        }
     }
 })
 
-function dealWithGameData() {
-    getGameData(GAME_ID, function (err, data) {
+function dealWithGameData(i) {
+    getGameData(gameIds[i], function (err, data) {
         if (err) return err
-        if (!oldGameData) {
-            oldGameData = data
+        if (!oldGameData[i]) {
+            oldGameData[i] = data
         } else {
-            if (data.numberOfTurns != oldGameData.numberOfTurns) {
+            if (data.numberOfTurns != oldGameData[i].numberOfTurns) {
                 console.log('New turn')
                 client.channels.get(config.discord.channel).send(`<@&384814450047189005> Turn ${data.numberOfTurns} has finished!`)
                 timeSinceNotify = moment()
+                notified = false
             }
-            if (moment() - timeSinceNotify > 1000*43200) {
+            if (moment() - timeSinceNotify > 1000 * 3600 * 8) {
                 timeSinceNotify = moment()
                 data.players.forEach(function (element, index) {
                     if (element.hasCommittedOrders != 'True') {
                         console.log(`${element.name} being notified`)
                         var discName = config.warzoneToDiscord[element.name]
-                        client.channels.get(config.discord.channel).send(`${discName}, please take your turn`)
+                        client.channels.get(config.discord.channel).send(`${discName}, please take your turn in ${data.name}`)
                     }
                 })
             }
+            var numLeft = [];
             data.players.forEach(function (element, index) {
-                if (element.hasCommittedOrders == 'True' && oldGameData.players[index].hasCommittedOrders != 'True') {
-                    console.log(`${element.name} has taken their turn`)
-                    client.channels.get(config.discord.channel).send(`${element.name} has taken their turn`)
+                if (element.hasCommittedOrders == 'False') numLeft.push(element.name)
+                if (element.hasCommittedOrders == 'True' && oldGameData.players[index].hasCommittedOrders != 'True' && element.isAI == 'False') {
+                    console.log(`${element.name} has taken their turn in ${data.name}`)
+                    client.channels.get(config.discord.channel).send(`${element.name} has taken their turn in ${data.name}`)
                 }
             })
-            oldGameData = data
+            if (numLeft.length == 1 && notified == false) {
+                client.channels.get(config.discord.channel).send(`${config.warzoneToDiscord[element.name]} is the only remaining player`)
+                notified = true
+            }
+            oldGameData[i] = data
         }
     })
 }
 
-setInterval(dealWithGameData, 60000)
+function start(cb, i) {
+    if (i >= gameIds.length) return
+    else {
+        intervals.push(setInterval(dealWithGameData, API_DELAY * gameIds.length, i))
+        setTimeout(function () {
+            cb(cb, i + 1)
+        }, API_DELAY)
+    }
+}
+
+function restart() {
+    intervals.forEach(function (element, index) {
+        clearInterval(element)
+    })
+    intervals.length = 0
+    start(test, 0)
+}
+
+start(test, 0)
