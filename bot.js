@@ -76,14 +76,14 @@ function dealWithGameData(i) {
         } else {
             if (data.numberOfTurns != oldGameData[i].numberOfTurns) {
                 console.log('New turn')
-                client.channels.get(config.discord.channel).send(`<@&384814450047189005> Turn ${data.numberOfTurns} has finished!`)
+                client.channels.get(config.discord.channel).send(`<@&384814450047189005> Turn ${data.numberOfTurns} has finished in ${data.name}!`)
                 timeSinceNotify[i] = moment()
                 notified[i] = false
             }
             if (moment() - timeSinceNotify[i] > 1000 * 3600 * 8) {
                 timeSinceNotify[i] = moment()
                 data.players.forEach(function (element) {
-                    if (element.hasCommittedOrders != 'True') {
+                    if (element.hasCommittedOrders != 'True' && element.state != 'SurrenderAccepted') {
                         console.log(`${element.name} being notified`)
                         var discName = config.warzoneToDiscord[element.name]
                         client.channels.get(config.discord.channel).send(`${discName}, please take your turn in ${data.name}`)
@@ -99,8 +99,8 @@ function dealWithGameData(i) {
                 }
             })
             if (numLeft.length == 1 && notified[i] == false) {
-                client.channels.get(config.discord.channel).send(`${config.warzoneToDiscord[numLeft[0]]} is the only remaining player`)
-                console.log(`${config.warzoneToDiscord[numLeft[0]]} is the only remaining player`)
+                client.channels.get(config.discord.channel).send(`${config.warzoneToDiscord[numLeft[0]]} is the only remaining player in ${data.name}`)
+                console.log(`${config.warzoneToDiscord[numLeft[0]]} is the only remaining player in ${data.name}`)
                 notified[i] = true
             }
             oldGameData[i] = data
