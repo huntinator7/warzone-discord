@@ -92,7 +92,7 @@ function dealWithGameData(i) {
             }
             var numLeft = [];
             data.players.forEach(function (element, index) {
-                if (element.hasCommittedOrders == 'False') numLeft.push(element.name)
+                if (element.hasCommittedOrders == 'False' && element.state != 'SurrenderAccepted') numLeft.push(element.name)
                 if (element.hasCommittedOrders == 'True' && oldGameData[i].players[index].hasCommittedOrders != 'True' && element.isAI == 'False') {
                     console.log(`${element.name} has taken their turn in ${data.name}`)
                     client.channels.get(config.discord.channel).send(`${element.name} has taken their turn in ${data.name}`)
