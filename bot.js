@@ -15,8 +15,7 @@ function getGameData(gameID, cb) {
             console.log('POST successful')
             cb(null, JSON.parse(body))
         } else {
-            console.log('POST failed ' + err)
-            cb(err, JSON.parse(body))
+            console.log('POST failed with code ' + res + err)
         }
     }
 
