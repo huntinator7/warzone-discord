@@ -82,7 +82,7 @@ function dealWithGameData(i) {
             if (moment() - timeSinceNotify[i] > 1000 * 3600 * 8) {
                 timeSinceNotify[i] = moment()
                 data.players.forEach(function (element) {
-                    if (element.hasCommittedOrders != 'True' && element.state != 'SurrenderAccepted') {
+                    if (element.hasCommittedOrders != 'True' && element.state == 'Playing') {
                         console.log(`${element.name} being notified`)
                         var discName = config.warzoneToDiscord[element.name]
                         client.channels.get(config.discord.channel).send(`${discName}, please take your turn in ${data.name}`)
@@ -91,7 +91,7 @@ function dealWithGameData(i) {
             }
             var numLeft = [];
             data.players.forEach(function (element, index) {
-                if (element.hasCommittedOrders == 'False' && element.state != 'SurrenderAccepted') numLeft.push(element.name)
+                if (element.hasCommittedOrders == 'False' && element.state == 'Playing') numLeft.push(element.name)
                 if (element.hasCommittedOrders == 'True' && oldGameData[i].players[index].hasCommittedOrders != 'True' && element.isAI == 'False') {
                     console.log(`${element.name} has taken their turn in ${data.name}`)
                     client.channels.get(config.discord.channel).send(`${element.name} has taken their turn in ${data.name}`)
